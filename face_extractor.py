@@ -1,7 +1,5 @@
 import cv2 as cv
 
-# return cv.resize(image_data, (w, h))
-
 
 class FaceExtractor:
     def __init__(self, size, padding=0):
@@ -9,49 +7,50 @@ class FaceExtractor:
         self.h = size[1]
         self.d = padding
 
-    def get_face(self, image):
+    def __crop(self, image, x, y, w, h):
+
+        # Calculating Padding
+        padding = int((((w + h) / 2) * self.padding) / 2)
+
+        # Fitting Image to a 1:1 format
+        if w < h:
+            diff = h - w
+
+            w += diff / 2
+            x -= diff / 2
+        elif h < w:
+            diff = w - h
+
+            h += diff / 2
+            y -= diff / 2
+
+        # Adding Padding
+        y -= padding
+        x -= padding
+
+        # Returning Cropped Image
+        return image[y:y + h + 2 * padding, x:x + 2 * padding + w]
+
+    def get_faces(self, image, as_gray=True):
+
         # Classifier used for Face Detection
         face_classifier = cv.CascadeClassifier(
             './ressources/haarcascade_frontalface_default')
 
+        # Convert to Gray
         image_gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
+        # Detect Faces form Gray Image
+        faces = face_classifier.detectMultiScale(image_gray, 1.1, 5)
 
-def crop(image_data, x, y, w, h):
-    padding = int((((w + h) / 2) * 0.3) / 2)
+        detected_faces = []
 
-    if w < h:
-        diff = h - w
+        for (x, y, w, h) in faces:
+            cropped_image = self.__crop(image, x, y, w, h)
+            rescaled = cv.resize(cropped_image, (self.w, self.h))
 
-        w += diff / 2
-        x -= diff / 2
-    elif h < w:
-        diff = w - h
+            # Appending to result array
 
-        h += diff / 2
-        y -= diff / 2
+            detected_faces.append(rescaled)
 
-    return image_data[y - padding:y + h + padding, x - padding:x + padding + w]
-
-
-def extract_face(image_data):
-    face_classifier = cv.CascadeClassifier(
-        './haarcascade_frontalface_default.xml')
-
-    faces = face_classifier.detectMultiScale(image_gray, 1.3, 5)
-
-    for (x, y, w, h) in faces:
-        cv.rectangle(image_data, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-    try:
-        cropped_image = crop(image_gray, x, y, w, h)
-        cropped_image = rescale(cropped_image, 256, 256)
-        # cv.imshow("cropped", cropped_image)
-        return cropped_image
-    except:
-        return None
-
-    try:
-        print(faces.shape[0], 'faces detected')
-    except:
-        pass
+        return detected_faces
