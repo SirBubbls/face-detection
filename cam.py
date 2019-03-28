@@ -1,6 +1,5 @@
 import cv2
-from face_extractor import extract_face
-from eval_face import eval_face
+from face_extractor import FaceExtractor
 from time import sleep
 
 
@@ -9,21 +8,16 @@ cap = cv2.VideoCapture(0)
 attribute_labels = ['Happiness', 'Sadness',
                     'Surprise', 'Anger', 'Disgust', 'Fear']
 
+extractor = FaceExtractor((256, 256), 0.3)
+
 while True:
     ret, frame = cap.read()
 
-    try:
-        output = extract_face(frame)
+    faces = extractor.get_faces(frame)
 
-        evaluation = eval_face(output)
-
-        for i in range(6):
-            print(attribute_labels[i], ': ', evaluation[i])
-
-        print('\n\n')
-        cv2.imshow('WebCam', output)
-    except Exception:
-        pass
+    if faces != None:
+        for face in faces:
+            cv2.imshow('Face', face)
 
     if cv2.waitKey(1) == 27:
         break
