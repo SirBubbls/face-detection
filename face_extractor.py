@@ -56,7 +56,7 @@ class FaceExtractor:
         img2_fg = cv.bitwise_and(tmp, tmp, mask=mask_inv)
         return cv.add(img1_bg, img2_fg)
 
-    def get_faces(self, image, as_gray=True):
+    def get_faces(self, image, as_gray=True, mode='single'):
 
         # Classifier used for Face Detection
         face_classifier = cv.CascadeClassifier(
@@ -72,18 +72,18 @@ class FaceExtractor:
             return None
 
         detected_faces = []
+        if mode == 'blured':
+            image = self.blur(image_gray, 20, faces)
 
-        detected_faces.append(self.blur(image_gray, 20, faces))
-
-        for (x, y, w, h) in faces[1:]:
+        for (x, y, w, h) in faces:
 
             try:
                 pass
                 # Processing Image
-                # cropped_image = self.__crop(image, x, y, w, h)
-                # rescaled = cv.resize(cropped_image, (self.w, self.h))
+                cropped_image = self.__crop(image, x, y, w, h)
+                rescaled = cv.resize(cropped_image, (self.w, self.h))
                 # Appending face to result list
-                # detected_faces.append(rescaled)
+                detected_faces.append(rescaled)
             except Exception:
                 print("No Face Found")
                 return None
