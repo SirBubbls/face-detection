@@ -1,4 +1,5 @@
 import cv2 as cv
+import numpy as np
 
 
 class FaceExtractor:
@@ -34,6 +35,27 @@ class FaceExtractor:
         except Exception:
             return None
 
+    def blur(self, image, strength, faces):
+        # Blurred Image
+        tmp = image.copy()
+        tmp = cv.blur(tmp, (23, 23))
+
+        # Base Mask
+        mask_shape = (image.shape[0], image.shape[1], 1)
+        mask = np.full(mask_shape, 0, dtype=np.uint8)
+
+        # For every Face Mask
+        for (x, y, w, h) in faces:
+
+            cv.ellipse(
+                mask, ((int((x + x + w) / 2), int((y + y + h) / 2)), (w * 0.75, h * 1.1), 0), 255, -1)
+
+        mask_inv = cv.bitwise_not(mask)
+
+        img1_bg = cv.bitwise_and(image, image, mask=mask)
+        img2_fg = cv.bitwise_and(tmp, tmp, mask=mask_inv)
+        return cv.add(img1_bg, img2_fg)
+
     def get_faces(self, image, as_gray=True):
 
         # Classifier used for Face Detection
@@ -51,15 +73,19 @@ class FaceExtractor:
 
         detected_faces = []
 
-        for (x, y, w, h) in faces:
-            try:
-                # Processing Image
-                cropped_image = self.__crop(image, x, y, w, h)
-                rescaled = cv.resize(cropped_image, (self.w, self.h))
+        detected_faces.append(self.blur(image_gray, 20, faces))
 
+        for (x, y, w, h) in faces[1:]:
+
+            try:
+                pass
+                # Processing Image
+                # cropped_image = self.__crop(image, x, y, w, h)
+                # rescaled = cv.resize(cropped_image, (self.w, self.h))
                 # Appending face to result list
-                detected_faces.append(rescaled)
+                # detected_faces.append(rescaled)
             except Exception:
+                print("No Face Found")
                 return None
 
         return detected_faces
