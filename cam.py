@@ -13,15 +13,15 @@ extractor = FaceExtractor((256, 256), 0.3)
 while True:
     ret, frame = cap.read()
 
-
     try:
         faces = extractor.get_faces(frame, mode='blured')
-        cv.imshow('Face', faces[0])
+        for faced_num in range(len(faces)):
+            cv.imshow('Face {}'.format(faced_num), faces[faced_num])
     except Exception:
         pass
-    # if faces != None:
+    # if faces:
         # for face in faces:
-        # cv2.imshow('Face', face)
+            # cv.imshow('Face', face)
 
     if cv.waitKey(1) == 27:
         break
